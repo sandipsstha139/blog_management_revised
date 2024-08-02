@@ -1,13 +1,17 @@
 import { NextFunction, Request, Response } from "express";
 import { CatchAsync } from "../utils/CatchAsync";
-import AppError from "../errors/AppError";
+import AppError from "../error/AppError";
 import prisma from "../database/database";
-
+import { BadRequestError } from "../error/BadRequestError";
+import loggerWithNameSpace from "../utils/logger";
+import httpStatusCodes from "http-status-codes";
 interface CreateRequest extends Request {
   body: {
     name: string;
   };
 }
+
+const logger = loggerWithNameSpace("CategoryLogger");
 
 export const createCategory = CatchAsync(
   async (req: CreateRequest, res: Response, next: NextFunction) => {
@@ -15,15 +19,15 @@ export const createCategory = CatchAsync(
     const { templateId } = req.params;
 
     if (!name) {
-      return next(new AppError("Name is required", 400));
+      return next(new BadRequestError("Name is required"));
     }
 
     const category = await prisma.category.create({
       data: { name, templateId: Number(templateId) },
     });
 
-    console.log(category);
-    res.status(201).json({
+    logger.info(`Category created with name: ${name}`);
+    res.status(httpStatusCodes.CREATED).json({
       status: 201,
       message: "Category created successfully",
       data: category,

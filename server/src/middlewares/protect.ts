@@ -1,10 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import AppError from "../errors/AppError";
 import prisma from "../database/database";
 import { User } from "@prisma/client";
 import { JwtPayload } from "jsonwebtoken";
 import { CatchAsync } from "../utils/CatchAsync";
+import { ForbiddenError } from "../error/ForbiddenError";
+import { NotFoundError } from "../error/NotFoundError";
+import { UnAuthenticatedError } from "../error/UnAuthenticatedError";
 
 interface CustomRequest extends Request {
   user?: User;
@@ -17,7 +19,9 @@ const protect = CatchAsync(
       req.header("Authorization")?.replace("Bearer ", "");
 
     if (!token) {
-      return next(new AppError("Unauthorized request", 401));
+      return next(
+        new UnAuthenticatedError("Please login to access this route")
+      );
     }
 
     const decodedToken = jwt.verify(
@@ -30,7 +34,7 @@ const protect = CatchAsync(
     });
 
     if (!user) {
-      return next(new AppError("User not found", 404));
+      return next(new NotFoundError("User not found"));
     }
 
     req.user = user;

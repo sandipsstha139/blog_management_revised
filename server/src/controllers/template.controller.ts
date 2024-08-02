@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { CatchAsync } from "../utils/CatchAsync";
-import AppError from "../errors/AppError";
 import prisma from "../database/database";
+import { BadRequestError } from "../error/BadRequestError";
 
 interface CreateRequest extends Request {
   body: {
@@ -14,7 +14,7 @@ export const createTemplate = CatchAsync(
     const { name } = req.body;
 
     if (!name) {
-      return next(new AppError("Name is required", 400));
+      return next(new BadRequestError("Name is required"));
     }
 
     const template = await prisma.template.create({

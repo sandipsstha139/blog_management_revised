@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import AppError from "../errors/AppError";
 import prisma from "../database/database";
 import { User } from "@prisma/client";
 import { generateToken } from "../utils/token";
@@ -8,6 +7,8 @@ import bcrypt from "bcryptjs";
 import { Role } from "../types/roles";
 import jwt from "jsonwebtoken";
 import { parse } from "path";
+import { NotFoundError } from "../error/NotFoundError";
+import { BadRequestError } from "../error/BadRequestError";
 
 interface LoginRequest extends Request {
   body: {
@@ -36,7 +37,7 @@ const generateAccessAndRefreshTokens = async (
   try {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
-      return next(new AppError("User not found", 404));
+      return next(new NotFoundError("User not found"));
     }
 
     const { accessToken, refreshToken } = generateToken(user.id);
@@ -50,12 +51,7 @@ const generateAccessAndRefreshTokens = async (
 
     return { accessToken, refreshToken };
   } catch (error) {
-    next(
-      new AppError(
-        "Something went wrong while generating refresh and access tokens",
-        500
-      )
-    );
+    next(new BadRequestError("Could not generate access and refresh tokens"));
   }
 };
 
@@ -64,13 +60,13 @@ export const login = CatchAsync(
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return next(new AppError("Please fill the form completely!", 400));
+      return next(new BadRequestError("Please fill the form completely!"));
     }
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
 
     if (!existingUser) {
-      return next(new AppError("User does not exist!", 404));
+      return next(new NotFoundError("User not found"));
     }
 
     const isPasswordCorrect = await bcrypt.compare(
@@ -79,7 +75,7 @@ export const login = CatchAsync(
     );
 
     if (!isPasswordCorrect) {
-      return next(new AppError("Invalid credentials!", 400));
+      return next(new BadRequestError("Invalid credentials"));
     }
 
     const tokens = await generateAccessAndRefreshTokens(existingUser.id, next);
@@ -117,13 +113,13 @@ export const register = CatchAsync(
     const { email, password, username, roles } = req.body;
 
     if (!email || !password || !username) {
-      return next(new AppError("Please fill the form completely!", 400));
+      return next(new BadRequestError("Please fill the form completely!"));
     }
 
     const existingUser = await prisma.user.findFirst({ where: { email } });
 
     if (existingUser) {
-      return next(new AppError("User already exists!", 400));
+      return next(new BadRequestError("User already exists"));
     }
 
     const hashedPassword = bcrypt.hashSync(password, 10);
@@ -138,7 +134,7 @@ export const register = CatchAsync(
     });
 
     if (!newUser) {
-      return next(new AppError("User could not be created!", 500));
+      return next(new BadRequestError("Could not create user"));
     }
 
     const tokens = await generateAccessAndRefreshTokens(newUser.id, next);
@@ -192,7 +188,7 @@ export const getUserById = CatchAsync(
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
     if (!user) {
-      return next(new AppError("User not found", 404));
+      return next(new NotFoundError("User not found"));
     }
 
     res.status(200).json({
