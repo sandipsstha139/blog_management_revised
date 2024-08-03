@@ -61,33 +61,40 @@ model SubCategory {
 }
 
 model Blog {
-  id               Int         @id @default(autoincrement())
-  titleTag         String
-  metaTag          String
-  blogName         String
-  blogDescription  String
-  blogTitle        String
-  titleDescription String
-  slug             String
-  status           Status      @default(DRAFT)
-  blogImage        String
-  subCategoryId    Int
-  subCategory      SubCategory @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
-  updatedAt        DateTime    @updatedAt
-  createdAt        DateTime    @default(now())
-  Sections         Sections[]
-  Highlight        Highlight[]
+  id                   Int         @id @default(autoincrement())
+  canonicalTag         String
+  titleTag             String
+  metaTag              String
+  blogName             String
+  blogDescription      String
+  blogTitle            String
+  titleDescription     String
+  slug                 String
+  status               Status      @default(DRAFT)
+  blogImage            String
+  blogImageAltText     String
+  blogImageDescription String
+  blogImageCaption     String
+  subCategoryId        Int
+  subCategory          SubCategory @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
+  updatedAt            DateTime    @updatedAt
+  createdAt            DateTime    @default(now())
+  Sections             Sections[]
+  Highlight            Highlight[]
 }
 
 model Sections {
-  id           Int      @id @default(autoincrement())
-  title        String
-  description  String
-  sectionImage String
-  blogId       Int
-  blog         Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                      Int      @id @default(autoincrement())
+  title                   String
+  description             String
+  sectionImage            String
+  sectionImageAltText     String
+  sectionImageDescription String
+  sectionImageCaption     String
+  blogId                  Int
+  blog                    Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 }
 
 model Highlight {
@@ -102,14 +109,17 @@ model Highlight {
 }
 
 model HighlightSections {
-  id                    Int       @id @default(autoincrement())
-  title                 String
-  description           String
-  highlightSectionImage String
-  highlightId           Int
-  highlight             Highlight @relation(fields: [highlightId], references: [id], onDelete: Cascade)
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  id                               Int       @id @default(autoincrement())
+  title                            String
+  description                      String
+  highlightSectionImage            String
+  highlightSectionImageAltText     String
+  highlightSectionImageDescription String
+  highlightSectionImageCaption     String
+  highlightId                      Int
+  highlight                        Highlight @relation(fields: [highlightId], references: [id], onDelete: Cascade)
+  createdAt                        DateTime  @default(now())
+  updatedAt                        DateTime  @updatedAt
 }
 
 model Contact {
@@ -118,20 +128,6 @@ model Contact {
   email     String
   message   String
   phone     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model PrivacyPolicy {
-  id        Int      @id @default(autoincrement())
-  html      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model TermsAndCondition {
-  id        Int      @id @default(autoincrement())
-  html      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

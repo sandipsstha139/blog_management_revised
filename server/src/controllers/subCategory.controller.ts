@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { CatchAsync } from "../utils/CatchAsync";
-import AppError from "../errors/AppError";
 import prisma from "../database/database";
+import { BadRequestError } from "../error/BadRequestError";
 
 interface CreateRequest extends Request {
   body: {
@@ -15,7 +15,7 @@ export const createSubCategory = CatchAsync(
     const { categoryId } = req.params;
 
     if (!name) {
-      return next(new AppError("Name is required", 400));
+      return next(new BadRequestError("Name is required"));
     }
 
     const subCategory = await prisma.subCategory.create({
