@@ -48,7 +48,7 @@ export function AuthLogin() {
       enqueueSnackbar("Login Successfully", { variant: "success" });
     }
     if (isErrorLoginUser) {
-      enqueueSnackbar(`${errorLoginUser.message}`, { variant: "error" });
+      enqueueSnackbar(`${errorLoginUser.data.message}`, { variant: "error" });
     }
   }, [isSuccessLoginUser, isErrorLoginUser, errorLoginUser]);
   return (
