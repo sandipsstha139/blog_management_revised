@@ -33,7 +33,9 @@ export function AuthLogin() {
   };
   const onSubmit = async (values, { setSubmitting }) => {
     try {
-      await loginUser(values).unwrap();
+      console.log(values);
+      const res = await loginUser(values).unwrap();
+      console.log(res);
       router.push("/dashboard");
     } catch (error) {
       console.error("Error Login:", error);
@@ -46,7 +48,7 @@ export function AuthLogin() {
       enqueueSnackbar("Login Successfully", { variant: "success" });
     }
     if (isErrorLoginUser) {
-      enqueueSnackbar(`${errorLoginUser.data.message}`, { variant: "error" });
+      enqueueSnackbar(`${errorLoginUser.message}`, { variant: "error" });
     }
   }, [isSuccessLoginUser, isErrorLoginUser, errorLoginUser]);
   return (
