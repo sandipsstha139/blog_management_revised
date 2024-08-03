@@ -6,6 +6,7 @@ import { Readable } from "stream";
 import { Request, Response } from "express";
 import { BadRequestError } from "../error/BadRequestError";
 import { NotFoundError } from "../error/NotFoundError";
+import { deleteFile } from "../utils/multer";
 
 interface CreateRequest extends Request {
   body: {
@@ -61,7 +62,7 @@ export const createSection = CatchAsync(
         title,
         description,
         blogId: Number(blogId),
-        sectionImage: sectionImageUrl,
+        sectionImage: sectionImage.filename,
         sectionImageAltText,
         sectionImageDescription,
         sectionImageCaption,
@@ -71,7 +72,10 @@ export const createSection = CatchAsync(
     res.status(201).json({
       status: 201,
       message: "Section created successfully",
-      data: section,
+      data: {
+        ...section,
+        sectionImage: sectionImageUrl,
+      },
     });
   }
 );
@@ -93,7 +97,12 @@ export const getSection = CatchAsync(
     res.status(200).json({
       status: 200,
       message: "Section fetched successfully",
-      data: section,
+      data: {
+        ...section,
+        sectionImage: `${req.protocol}://${req.get("host")}/public/${
+          section.sectionImage
+        }`,
+      },
     });
   }
 );
@@ -106,7 +115,14 @@ export const getAllSections = CatchAsync(
       status: 200,
       results: sections.length,
       message: "Sections fetched successfully",
-      data: sections,
+      data: {
+        sections: sections.map((section) => ({
+          ...section,
+          sectionImage: `${req.protocol}}://${req.get("host")}/public/${
+            section.sectionImage
+          }`,
+        })),
+      },
     });
   }
 );
@@ -123,12 +139,11 @@ export const updateSection = CatchAsync(
       return next(new NotFoundError("Section not found"));
     }
 
-    let sectionImageUrl = section.sectionImage;
+    let sectionImage = section.sectionImage;
 
     if (req.file) {
-      sectionImageUrl = `${req.protocol}://${req.get("host")}/public/${
-        req.file.filename
-      }`;
+      await deleteFile(`./public/uploads/${section.sectionImage}`);
+      sectionImage = req.file.filename;
     }
 
     section = await prisma.sections.update({
@@ -136,27 +151,44 @@ export const updateSection = CatchAsync(
       data: {
         ...req.body,
         blogId: Number(req.body.blogId),
-        sectionImage: sectionImageUrl,
+        sectionImage: sectionImage,
       },
     });
 
     res.status(200).json({
       status: 200,
       message: "Section updated successfully",
-      data: section,
+      data: {
+        ...section,
+        sectionImage: `${req.protocol}://${req.get(
+          "host"
+        )}/public/${sectionImage}`,
+      },
     });
   }
 );
 
-export const deleteSection = CatchAsync(async (req: Request, res: Response) => {
-  const { sectionId } = req.params;
+export const deleteSection = CatchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { sectionId } = req.params;
 
-  const section = await prisma.sections.delete({
-    where: { id: Number(sectionId) },
-  });
+    const section = await prisma.sections.findUnique({
+      where: { id: Number(sectionId) },
+    });
 
-  res.status(200).json({
-    status: 200,
-    message: "Section deleted successfully",
-  });
-});
+    if (!section) {
+      return next(new NotFoundError("Section not found"));
+    }
+
+    await deleteFile(`./public/uploads/${section.sectionImage}`);
+
+    await prisma.sections.delete({
+      where: { id: Number(sectionId) },
+    });
+
+    res.status(200).json({
+      status: 200,
+      message: "Section deleted successfully",
+    });
+  }
+);

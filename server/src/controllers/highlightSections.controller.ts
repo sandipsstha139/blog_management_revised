@@ -8,6 +8,7 @@ import { BadRequestError } from "../error/BadRequestError";
 import { NotFoundError } from "../error/NotFoundError";
 import httpStatusCodes from "http-status-codes";
 import loggerWithNameSpace from "../utils/logger";
+import { deleteFile } from "../utils/multer";
 
 interface CreateRequest extends Request {
   body: {
@@ -59,23 +60,16 @@ export const createHighlightSection = CatchAsync(
 
     const highlightSectionImageUrl = `${req.protocol}://${req.get(
       "host"
-    )}/public/${highlightSectionImage.filename}`;
+    )}/public/${highlightSectionImage.filename.trim().replace(/\s/g, "")}`;
 
-    logger.info("Highlight Section created successfully", {
-      title,
-      description,
-      highlightId,
-      highlightSectionImageAltText,
-      highlightSectionImageDescription,
-      highlightSectionImageCaption,
-    });
+    logger.info("Highlight Section created successfully");
 
     const highlightSection = await prisma.highlightSections.create({
       data: {
         title,
         description,
         highlightId: Number(highlightId),
-        highlightSectionImage: highlightSectionImageUrl,
+        highlightSectionImage: highlightSectionImage.filename,
         highlightSectionImageAltText,
         highlightSectionImageDescription,
         highlightSectionImageCaption,
@@ -86,7 +80,10 @@ export const createHighlightSection = CatchAsync(
     res.status(httpStatusCodes.CREATED).json({
       status: 201,
       message: "Highlight Section created successfully",
-      data: highlightSection,
+      data: {
+        ...highlightSection,
+        highlightSectionImage: highlightSectionImageUrl,
+      },
     });
   }
 );
@@ -108,7 +105,12 @@ export const getHighlightSection = CatchAsync(
     res.status(httpStatusCodes.OK).json({
       status: 200,
       message: "Highlight Section fetched successfully",
-      data: highlightSection,
+      data: {
+        ...highlightSection,
+        highlightSectionImage: `${req.protocol}://${req.get("host")}/public/${
+          highlightSection.highlightSectionImage
+        }`,
+      },
     });
   }
 );
@@ -123,7 +125,14 @@ export const getAllHighlightSections = CatchAsync(
       status: 200,
       results: highlightSections.length,
       message: "highlight Sections fetched successfully",
-      data: highlightSections,
+      data: {
+        highlightSections: highlightSections.map((highlightSection) => ({
+          ...highlightSection,
+          highlightSectionImage: `${req.protocol}://${req.get("host")}/public/${
+            highlightSection.highlightSectionImage
+          }`,
+        })),
+      },
     });
   }
 );
@@ -140,12 +149,11 @@ export const updateHighlightSection = CatchAsync(
       return next(new NotFoundError("Highlight Section not found"));
     }
 
-    let highlightSectionImageUrl = highlightSection.highlightSectionImage;
+    let highlightSectionImage = highlightSection.highlightSectionImage;
 
     if (req.file) {
-      highlightSectionImageUrl = `${req.protocol}://${req.get("host")}/public/${
-        req.file.filename
-      }`;
+      deleteFile(`./public/uploads/${highlightSectionImage}`);
+      highlightSectionImage = req.file.filename;
     }
 
     highlightSection = await prisma.highlightSections.update({
@@ -153,7 +161,7 @@ export const updateHighlightSection = CatchAsync(
       data: {
         ...req.body,
         highlightId: Number(req.body.highlightId),
-        highlightSectionImage: highlightSectionImageUrl,
+        highlightSectionImage: highlightSectionImage,
       },
     });
 
@@ -162,16 +170,30 @@ export const updateHighlightSection = CatchAsync(
     res.status(httpStatusCodes.OK).json({
       status: 200,
       message: "Highlight Section updated successfully",
-      data: highlightSection,
+      data: {
+        ...highlightSection,
+        highlightSectionImage: `${req.protocol}://${req.get(
+          "host"
+        )}/public/${highlightSectionImage}`,
+      },
     });
   }
 );
 
 export const deleteHighlightSection = CatchAsync(
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     const { highlightSectionId } = req.params;
 
-    const section = await prisma.sections.delete({
+    const section = await prisma.highlightSections.findUnique({
+      where: { id: Number(highlightSectionId) },
+    });
+    if (!section) {
+      return next(new NotFoundError("Highlight Section not found"));
+    }
+
+    await deleteFile(`./public/uploads/${section.highlightSectionImage}`);
+
+    await prisma.highlightSections.delete({
       where: { id: Number(highlightSectionId) },
     });
 

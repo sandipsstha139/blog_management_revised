@@ -6,6 +6,7 @@ import { CatchAsync } from "../utils/CatchAsync";
 import slugify from "slugify";
 import { BadRequestError } from "../error/BadRequestError";
 import httpStatusCodes from "http-status-codes";
+import { deleteFile } from "../utils/multer";
 
 enum Status {
   DRAFT = "DRAFT",
@@ -33,7 +34,6 @@ interface createBlogRequest extends Request {
 
 export const createBlog = CatchAsync(
   async (req: createBlogRequest, res: Response) => {
-    console.log(req.body);
     const {
       canonicalTag,
       titleTag,
@@ -69,7 +69,7 @@ export const createBlog = CatchAsync(
         blogImageCaption,
         slug: slugify(slug, { lower: true }),
         status,
-        blogImage: blogImageUrl,
+        blogImage: req.file?.filename ?? "",
         subCategoryId: Number(subCategoryId),
       },
       include: {
@@ -93,7 +93,10 @@ export const createBlog = CatchAsync(
     res.status(httpStatusCodes.CREATED).json({
       status: 201,
       message: "Blog created successfully",
-      data: blog,
+      data: {
+        ...blog,
+        blogImage: blogImageUrl,
+      },
     });
   }
 );
@@ -108,12 +111,11 @@ export const updateBlog = CatchAsync(
       return next(new NotFoundError("Blog not found"));
     }
 
-    let blogImageUrl = blog.blogImage;
+    let blogImage = blog.blogImage;
 
     if (req.file) {
-      blogImageUrl = `${req.protocol}://${req.get("host")}/public/${
-        req.file.filename
-      }`;
+      await deleteFile(`./public/uploads/${blog.blogImage}`);
+      blogImage = req.file.filename;
     }
 
     if (req.body.status) {
@@ -126,7 +128,7 @@ export const updateBlog = CatchAsync(
       where: { id: Number(blogId) },
       data: {
         ...req.body,
-        blogImage: blogImageUrl,
+        blogImage: blogImage,
       },
       include: {
         Sections: true,
@@ -141,7 +143,10 @@ export const updateBlog = CatchAsync(
     res.status(httpStatusCodes.OK).json({
       status: 200,
       message: "Blog updated successfully",
-      data: blog,
+      data: {
+        ...blog,
+        blogImage: `${req.protocol}://${req.get("host")}/public/${blogImage}`,
+      },
     });
   }
 );
@@ -151,7 +156,6 @@ export const updateBlogStatus = CatchAsync(
     const { blogId } = req.params;
 
     const { status } = req.body;
-    console.log(req.body);
 
     const blog = await prisma.blog.update({
       where: { id: Number(blogId) },
@@ -171,7 +175,12 @@ export const updateBlogStatus = CatchAsync(
     res.status(httpStatusCodes.OK).json({
       status: 200,
       message: "Blog status updated successfully",
-      data: blog,
+      data: {
+        ...blog,
+        blogImage: `${req.protocol}://${req.get("host")}/public/${
+          blog.blogImage
+        }`,
+      },
     });
   }
 );
@@ -217,7 +226,12 @@ export const getBlog = CatchAsync(
     res.status(httpStatusCodes.OK).json({
       status: 200,
       message: "Blog fetched successfully",
-      data: blog,
+      data: {
+        ...blog,
+        blogImage: `${req.protocol}://${req.get("host")}/public/${
+          blog.blogImage
+        }`,
+      },
     });
   }
 );
@@ -243,7 +257,14 @@ export const getAllBlogs = CatchAsync(
       status: 200,
       results: blogs.length,
       message: "Blogs fetched successfully",
-      data: blogs,
+      data: {
+        blogs: blogs.map((blog) => ({
+          ...blog,
+          blogImage: `${req.protocol}://${req.get("host")}/public/${
+            blog.blogImage
+          }`,
+        })),
+      },
     });
   }
 );
@@ -252,13 +273,19 @@ export const deleteBlog = CatchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { blogId } = req.params;
 
-    const blog = await prisma.blog.delete({
+    const blog = await prisma.blog.findUnique({
       where: { id: Number(blogId) },
     });
 
     if (!blog) {
       return next(new NotFoundError("Blog not found"));
     }
+
+    deleteFile(`./public/uploads/${blog.blogImage}`);
+
+    await prisma.blog.delete({
+      where: { id: Number(blogId) },
+    });
 
     res.status(httpStatusCodes.OK).json({
       status: 200,
