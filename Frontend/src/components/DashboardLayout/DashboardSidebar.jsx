@@ -1,35 +1,31 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import clsx from "clsx";
-import {
-  Banknote,
-  Folder,
-  GlobeLock,
-  Handshake,
-  LogOut,
-  Mail,
-  NotepadText,
-  Settings,
-  Star,
-} from "lucide-react";
-import Image from "next/image";
+import { GlobeLock, Handshake, Mail, NotepadText, Star } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Button } from "../ui/button";
+import { formatDate } from "@/utils/dateUtils";
 
 export default function DashboardSideBar() {
   const pathname = usePathname();
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentDate(new Date());
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   return (
     <div className="lg:block hidden border-r h-full">
       <div className="flex h-full max-h-screen flex-col gap-2">
-        <div className="flex h-[55px] items-center justify-center border-b px-3 w-full">
-          <Link
-            className="flex items-center gap-2 font-semibold ml-1"
-            href="/dashboard"
-          >
-            <span className="">SEO Dashboard</span>
+        <div className="flex h-[55px] items-center justify-start border-b px-3 w-full">
+          <Link className=" gap-2 font-semibold ml-1" href="/dashboard">
+            <span className="">CMS Dashboard</span>
           </Link>
         </div>
         <div className="flex-1 overflow-auto py-2">
@@ -114,7 +110,7 @@ export default function DashboardSideBar() {
             <div className="mt-auto">
               <Separator className="my-3" />
               <div className="flex justify-center items-center">
-                <Image src="/assets/logo.svg" width={100} height={100} />
+                <p>{formatDate(currentDate)}</p>
               </div>
             </div>
           </nav>

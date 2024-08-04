@@ -36,7 +36,7 @@ export function AuthLogin() {
       console.log(values);
       const res = await loginUser(values).unwrap();
       console.log(res);
-      router.push("/dashboard");
+      router.replace("/dashboard");
     } catch (error) {
       console.error("Error Login:", error);
     } finally {

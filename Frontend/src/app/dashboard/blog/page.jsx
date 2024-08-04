@@ -1,16 +1,7 @@
-"use client";
-
-import BlogList from "@/components/Blog/BlogList";
+import Blog from "@/components/Blog/Blog";
 
 const page = () => {
-  return (
-    <div className="max-w-full p-4">
-      <div className="w-full flex justify-between">
-        <h1 className="text-2xl font-bold mb-4">All Blogs</h1>
-      </div>
-      <BlogList />
-    </div>
-  );
+  return <Blog />;
 };
 
 export default page;
