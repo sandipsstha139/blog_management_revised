@@ -238,7 +238,24 @@ export const getBlog = CatchAsync(
 
 export const getAllBlogs = CatchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
+    const { templateId, categoryId, subCategoryId } = req.query;
+
+    let queryClause = {};
+
+    if (templateId) {
+      queryClause = { ...queryClause, templateId: Number(templateId) };
+    }
+
+    if (categoryId) {
+      queryClause = { ...queryClause, categoryId: Number(categoryId) };
+    }
+    if (subCategoryId) {
+      queryClause = { ...queryClause, subCategoryId: Number(subCategoryId) };
+    }
+
+    console.log(queryClause);
     const blogs = await prisma.blog.findMany({
+      where: queryClause,
       include: {
         Sections: true,
         Highlight: {

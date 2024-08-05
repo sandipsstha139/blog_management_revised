@@ -38,6 +38,7 @@ model Template {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   Category  Category[]
+  Blog      Blog[]
 }
 
 model Category {
@@ -48,6 +49,7 @@ model Category {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   SubCategory SubCategory[]
+  Blog        Blog[]
 }
 
 model SubCategory {
@@ -75,6 +77,10 @@ model Blog {
   blogImageAltText     String
   blogImageDescription String
   blogImageCaption     String
+  templateId           Int
+  template             Template    @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  categoryId           Int
+  category             Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   subCategoryId        Int
   subCategory          SubCategory @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
   updatedAt            DateTime    @updatedAt
