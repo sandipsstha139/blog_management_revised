@@ -1,5 +1,14 @@
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import {
   SheetContent,
@@ -16,42 +25,12 @@ import {
   NotepadText,
   Star,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
+
 const DashboardNavbar = ({ children }) => {
   return (
-    <div className="flex flex-col">
-      <header className="flex h-14 lg:h-[55px] items-center gap-4 border-b px-3">
-        <div className="absolute right-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Avatar>
-                <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>CN</AvatarFallback>
-              </Avatar>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56">
-              <DropdownMenuLabel>Welcome Back, User</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem>Log out</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+    <div className="flex flex-col min-h-screen">
+      <header className="flex h-14 lg:h-[55px] items-center gap-4 border-b px-3 relative">
         <Dialog>
           <SheetTrigger className="min-[1024px]:hidden p-2 transition">
             <HamburgerMenuIcon />
@@ -66,14 +45,6 @@ const DashboardNavbar = ({ children }) => {
               </Link>
             </SheetHeader>
             <div className="flex flex-col space-y-3 mt-[1rem]">
-              {/* <DialogClose asChild>
-                <Link href="/dashboard">
-                  <Button variant="outline" className="w-full">
-                    <HomeIcon className="mr-2 h-4 w-4" />
-                    Home
-                  </Button>
-                </Link>
-              </DialogClose> */}
               <DialogClose asChild>
                 <Link href="/dashboard/blog">
                   <Button variant="outline" className="w-full">
@@ -127,8 +98,27 @@ const DashboardNavbar = ({ children }) => {
             </div>
           </SheetContent>
         </Dialog>
+        <div className="flex-grow"></div>
+        <div className="relative">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Avatar>
+                <AvatarImage src="https://github.com/shadcn.png" />
+                <AvatarFallback>CN</AvatarFallback>
+              </Avatar>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuLabel>Welcome Back, User</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Log out</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </header>
-      {children}
+
+      {/* Add your sidebar content here if needed */}
+
+      <main className="flex-grow">{children}</main>
     </div>
   );
 };

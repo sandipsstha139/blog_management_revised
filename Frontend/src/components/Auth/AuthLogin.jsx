@@ -33,8 +33,10 @@ export function AuthLogin() {
   };
   const onSubmit = async (values, { setSubmitting }) => {
     try {
-      await loginUser(values).unwrap();
-      router.push("/dashboard");
+      console.log(values);
+      const res = await loginUser(values).unwrap();
+      console.log(res);
+      router.replace("/dashboard");
     } catch (error) {
       console.error("Error Login:", error);
     } finally {
