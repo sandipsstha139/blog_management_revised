@@ -79,8 +79,8 @@ model Blog {
   blogImageCaption     String
   templateId           Int
   template             Template    @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  categoryId           Int
-  category             Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId           Int?
+  category             Category?   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   subCategoryId        Int
   subCategory          SubCategory @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
   updatedAt            DateTime    @updatedAt

@@ -23,4 +23,8 @@ router
   .route("/create/:templateId/:categoryId/:subCategoryId")
   .post(upload.single("blogImage"), createBlog);
 
+router
+  .route("/create/:templateId/:subCategoryId")
+  .post(upload.single("blogImage"), createBlog);
+
 export default router;
