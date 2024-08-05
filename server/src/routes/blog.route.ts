@@ -20,7 +20,7 @@ router
   .delete(deleteBlog);
 router.route("/update-status/:blogId").patch(updateBlogStatus);
 router
-  .route("/create/:subCategoryId")
+  .route("/create/:templateId/:categoryId/:subCategoryId")
   .post(upload.single("blogImage"), createBlog);
 
 export default router;

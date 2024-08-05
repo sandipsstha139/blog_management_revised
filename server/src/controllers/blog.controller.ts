@@ -7,6 +7,10 @@ import slugify from "slugify";
 import { BadRequestError } from "../error/BadRequestError";
 import httpStatusCodes from "http-status-codes";
 import { deleteFile } from "../utils/multer";
+import { ImageUrlGenerator } from "../utils/ImageUrlGenerator";
+import { Sections } from "../interface/sections.interface";
+import { Highlight } from "../interface/highlight.interface";
+import { HighlightSections } from "../interface/highlightSections.interface";
 
 enum Status {
   DRAFT = "DRAFT",
@@ -49,11 +53,12 @@ export const createBlog = CatchAsync(
       status,
     } = req.body;
 
-    const { subCategoryId } = req.params;
+    const { templateId, categoryId, subCategoryId } = req.params;
+    let blogImageUrl;
 
-    const blogImageUrl = `${req.protocol}://${req.get("host")}/public/${
-      req.file?.filename
-    }`;
+    if (req.file) {
+      blogImageUrl = ImageUrlGenerator(req, req.file?.filename);
+    }
 
     const blog = await prisma.blog.create({
       data: {
@@ -70,6 +75,8 @@ export const createBlog = CatchAsync(
         slug: slugify(slug, { lower: true }),
         status,
         blogImage: req.file?.filename ?? "",
+        templateId: Number(templateId),
+        categoryId: Number(categoryId),
         subCategoryId: Number(subCategoryId),
       },
       include: {
@@ -95,7 +102,7 @@ export const createBlog = CatchAsync(
       message: "Blog created successfully",
       data: {
         ...blog,
-        blogImage: blogImageUrl,
+        blogImage: blogImageUrl || "",
       },
     });
   }
@@ -105,8 +112,17 @@ export const updateBlog = CatchAsync(
   async (req: createBlogRequest, res: Response, next: NextFunction) => {
     const { blogId } = req.params;
 
-    let blog = await prisma.blog.findUnique({ where: { id: Number(blogId) } });
-
+    let blog = await prisma.blog.findUnique({
+      where: { id: Number(blogId) },
+      include: {
+        Sections: true,
+        Highlight: {
+          include: {
+            HighlightSections: true,
+          },
+        },
+      },
+    });
     if (!blog) {
       return next(new NotFoundError("Blog not found"));
     }
@@ -145,7 +161,23 @@ export const updateBlog = CatchAsync(
       message: "Blog updated successfully",
       data: {
         ...blog,
-        blogImage: `${req.protocol}://${req.get("host")}/public/${blogImage}`,
+        blogImage: ImageUrlGenerator(req, blogImage),
+        Sections: blog.Sections?.map((section: Sections) => ({
+          ...section,
+          sectionImage: ImageUrlGenerator(req, section.sectionImage),
+        })),
+        Highlight: blog.Highlight?.map((highlight: Highlight) => ({
+          ...highlight,
+          HighlightSections: highlight.HighlightSections?.map(
+            (highlightSection: HighlightSections) => ({
+              ...highlightSection,
+              highlightSectionImage: ImageUrlGenerator(
+                req,
+                highlightSection.highlightSectionImage
+              ),
+            })
+          ),
+        })),
       },
     });
   }
@@ -177,10 +209,24 @@ export const updateBlogStatus = CatchAsync(
       message: "Blog status updated successfully",
       data: {
         ...blog,
-        blogImage: `${req.protocol}://${req.get("host")}/public/${
-          blog.blogImage
-        }`,
+        blogImage: ImageUrlGenerator(req, blog.blogImage),
       },
+      Sections: blog.Sections?.map((section: Sections) => ({
+        ...section,
+        sectionImage: ImageUrlGenerator(req, section.sectionImage),
+      })),
+      Highlight: blog.Highlight?.map((highlight) => ({
+        ...highlight,
+        HighlightSections: highlight.HighlightSections?.map(
+          (highlightSection: HighlightSections) => ({
+            ...highlightSection,
+            highlightSectionImage: ImageUrlGenerator(
+              req,
+              highlightSection.highlightSectionImage
+            ),
+          })
+        ),
+      })),
     });
   }
 );
@@ -231,6 +277,22 @@ export const getBlog = CatchAsync(
         blogImage: `${req.protocol}://${req.get("host")}/public/${
           blog.blogImage
         }`,
+        Sections: blog.Sections?.map((section: Sections) => ({
+          ...section,
+          sectionImage: ImageUrlGenerator(req, section.sectionImage),
+        })),
+        Highlight: blog.Highlight?.map((highlight) => ({
+          ...highlight,
+          HighlightSections: highlight.HighlightSections?.map(
+            (highlightSection: HighlightSections) => ({
+              ...highlightSection,
+              highlightSectionImage: ImageUrlGenerator(
+                req,
+                highlightSection.highlightSectionImage
+              ),
+            })
+          ),
+        })),
       },
     });
   }
@@ -277,9 +339,23 @@ export const getAllBlogs = CatchAsync(
       data: {
         blogs: blogs.map((blog) => ({
           ...blog,
-          blogImage: `${req.protocol}://${req.get("host")}/public/${
-            blog.blogImage
-          }`,
+          blogImage: ImageUrlGenerator(req, blog.blogImage),
+          Sections: blog.Sections?.map((section: Sections) => ({
+            ...section,
+            sectionImage: ImageUrlGenerator(req, section.sectionImage),
+          })),
+          Highlight: blog.Highlight?.map((highlight) => ({
+            ...highlight,
+            HighlightSections: highlight.HighlightSections?.map(
+              (highlightSection: HighlightSections) => ({
+                ...highlightSection,
+                highlightSectionImage: ImageUrlGenerator(
+                  req,
+                  highlightSection.highlightSectionImage
+                ),
+              })
+            ),
+          })),
         })),
       },
     });

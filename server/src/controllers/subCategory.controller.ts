@@ -4,6 +4,7 @@ import prisma from "../database/database";
 import { BadRequestError } from "../error/BadRequestError";
 import { NotFoundError } from "../error/NotFoundError";
 import httpStatusCodes from "http-status-codes";
+import { Blog } from "@prisma/client";
 
 interface CreateRequest extends Request {
   body: {
@@ -39,6 +40,9 @@ export const getSubCategories = CatchAsync(
 
     const subCategories = await prisma.subCategory.findMany({
       where: whereClause,
+      include: {
+        Blog: true,
+      },
     });
 
     if (subCategories.length === 0) {
@@ -60,6 +64,9 @@ export const getSubCategory = CatchAsync(
     const subCategory = await prisma.subCategory.findUnique({
       where: {
         id: Number(subCategoryId),
+      },
+      include: {
+        Blog: true,
       },
     });
 

@@ -6,10 +6,13 @@ import { BadRequestError } from "../error/BadRequestError";
 import loggerWithNameSpace from "../utils/logger";
 import httpStatusCodes from "http-status-codes";
 import { NotFoundError } from "../error/NotFoundError";
+import { Blog } from "@prisma/client";
+
 interface CreateRequest extends Request {
   body: {
     name: string;
     templateId: number;
+    Blog: Blog;
   };
 }
 
@@ -42,6 +45,9 @@ export const getCategories = CatchAsync(
     const whereClause = templateId ? { templateId: Number(templateId) } : {};
     const categories = await prisma.category.findMany({
       where: whereClause,
+      include: {
+        Blog: true,
+      },
     });
 
     res.status(httpStatusCodes.OK).json({
@@ -60,6 +66,9 @@ export const getCategory = CatchAsync(
     const category = await prisma.category.findUnique({
       where: {
         id: Number(categoryId),
+      },
+      include: {
+        Blog: true,
       },
     });
 

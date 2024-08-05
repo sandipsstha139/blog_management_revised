@@ -1,7 +1,12 @@
-export interface HighlightSection {
+export interface HighlightSections {
   id: number;
   title: string;
   description: string;
   highlightSectionImage: string;
-  blogId: number;
+  highlightSectionImageAltText: string;
+  highlightSectionImageDescription: string;
+  highlightSectionImageCaption: string;
+  highlightId: number;
+  createdAt: Date;
+  updatedAt: Date;
 }

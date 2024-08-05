@@ -4,10 +4,12 @@ import prisma from "../database/database";
 import { BadRequestError } from "../error/BadRequestError";
 import httpStatusCodes from "http-status-codes";
 import { NotFoundError } from "../error/NotFoundError";
+import { Blog } from "@prisma/client";
 
 interface CreateRequest extends Request {
   body: {
     name: string;
+    Blog: Blog;
   };
 }
 
@@ -33,7 +35,11 @@ export const createTemplate = CatchAsync(
 
 export const getTemplates = CatchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const templates = await prisma.template.findMany();
+    const templates = await prisma.template.findMany({
+      include: {
+        Blog: true,
+      },
+    });
 
     res.status(httpStatusCodes.OK).json({
       status: 200,
@@ -50,6 +56,9 @@ export const getTemplate = CatchAsync(
     const template = await prisma.template.findUnique({
       where: {
         id: Number(templateId),
+      },
+      include: {
+        Blog: true,
       },
     });
 
