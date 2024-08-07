@@ -33,12 +33,13 @@ enum Status {
 }
 
 model Template {
-  id        Int        @id @default(autoincrement())
-  name      String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  Category  Category[]
-  Blog      Blog[]
+  id          Int           @id @default(autoincrement())
+  name        String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  Category    Category[]
+  SubCategory SubCategory[]
+  Blog        Blog[]
 }
 
 model Category {
@@ -58,6 +59,8 @@ model SubCategory {
   categoryId Int
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
+  templateId Int
+  template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
   updatedAt  DateTime @updatedAt
   Blog       Blog[]
 }

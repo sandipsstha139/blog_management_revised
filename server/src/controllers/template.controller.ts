@@ -4,12 +4,11 @@ import prisma from "../database/database";
 import { BadRequestError } from "../error/BadRequestError";
 import httpStatusCodes from "http-status-codes";
 import { NotFoundError } from "../error/NotFoundError";
-import { Blog } from "@prisma/client";
+import { Blog, Category, SubCategory } from "@prisma/client";
 
 interface CreateRequest extends Request {
   body: {
     name: string;
-    Blog: Blog;
   };
 }
 
@@ -37,7 +36,18 @@ export const getTemplates = CatchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const templates = await prisma.template.findMany({
       include: {
-        Blog: true,
+        Category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        SubCategory: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
 

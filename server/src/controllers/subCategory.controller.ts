@@ -9,20 +9,25 @@ import { Blog } from "@prisma/client";
 interface CreateRequest extends Request {
   body: {
     name: string;
+    templateId: number;
     categoryId: number;
   };
 }
 
 export const createSubCategory = CatchAsync(
   async (req: CreateRequest, res: Response, next: NextFunction) => {
-    const { name, categoryId } = req.body;
+    const { name, templateId, categoryId } = req.body;
 
     if (!name) {
       return next(new BadRequestError("Name is required"));
     }
 
     const subCategory = await prisma.subCategory.create({
-      data: { name, categoryId: Number(categoryId) },
+      data: {
+        name,
+        templateId: Number(templateId),
+        categoryId: Number(categoryId),
+      },
     });
 
     res.status(httpStatusCodes.CREATED).json({
