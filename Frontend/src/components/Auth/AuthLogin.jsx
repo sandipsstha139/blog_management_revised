@@ -54,10 +54,10 @@ export function AuthLogin() {
   return (
     <div className="w-screen flex justify-center items-center h-screen">
       <Card className="w-[350px]">
-        <CardHeader>
-          <CardTitle className="text-primary">Login </CardTitle>
+        <CardHeader className="text-center">
+          <CardTitle className="text-primary ">Login </CardTitle>
           <CardDescription className="text-reading">
-            Add Blogs to Hajir App Effortlessly
+            Add Blogs Effortlessly
           </CardDescription>
         </CardHeader>
         <Formik initialValues={initialValues} onSubmit={onSubmit}>

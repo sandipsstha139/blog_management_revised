@@ -26,6 +26,7 @@ import {
   Star,
 } from "lucide-react";
 import Link from "next/link";
+import ChangeTheme from "../ChangeTheme/ChangeTheme";
 
 const DashboardNavbar = ({ children }) => {
   return (
@@ -99,7 +100,8 @@ const DashboardNavbar = ({ children }) => {
           </SheetContent>
         </Dialog>
         <div className="flex-grow"></div>
-        <div className="relative">
+        <div className="w-24 flex justify-between ">
+          <ChangeTheme />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Avatar>
@@ -115,9 +117,6 @@ const DashboardNavbar = ({ children }) => {
           </DropdownMenu>
         </div>
       </header>
-
-      {/* Add your sidebar content here if needed */}
-
       <main className="flex-grow">{children}</main>
     </div>
   );
